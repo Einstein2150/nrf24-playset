@@ -247,15 +247,15 @@ KEYMAP_GERMAN = {
         '|' : (MODIFIER_ALT_RIGHT, KEY_EUROPE_2),
         '}' : (MODIFIER_ALT_RIGHT, KEY_0),
         '~' : (MODIFIER_ALT_RIGHT, KEY_BRACKET_RIGHT),
-        u'\'' : (MODIFIER_SHIFT_LEFT, KEY_EUROPE_1),
-        u'Ä' : (MODIFIER_SHIFT_LEFT, KEY_APOSTROPHE),
-        u'Ö' : (MODIFIER_SHIFT_LEFT, KEY_SEMICOLON),
-        u'Ü' : (MODIFIER_SHIFT_LEFT, KEY_BRACKET_LEFT),
-        u'ä' : (MODIFIER_NONE, KEY_APOSTROPHE),
-        u'ö' : (MODIFIER_NONE, KEY_SEMICOLON),
-        u'ü' : (MODIFIER_NONE, KEY_BRACKET_LEFT),
-        u'ß' : (MODIFIER_NONE, KEY_MINUS),
-        u'€' : (MODIFIER_ALT_RIGHT, KEY_E)
+        '\'' : (MODIFIER_SHIFT_LEFT, KEY_EUROPE_1),
+        'Ä' : (MODIFIER_SHIFT_LEFT, KEY_APOSTROPHE),
+        'Ö' : (MODIFIER_SHIFT_LEFT, KEY_SEMICOLON),
+        'Ü' : (MODIFIER_SHIFT_LEFT, KEY_BRACKET_LEFT),
+        'ä' : (MODIFIER_NONE, KEY_APOSTROPHE),
+        'ö' : (MODIFIER_NONE, KEY_SEMICOLON),
+        'ü' : (MODIFIER_NONE, KEY_BRACKET_LEFT),
+        'ß' : (MODIFIER_NONE, KEY_MINUS),
+        '€' : (MODIFIER_ALT_RIGHT, KEY_E)
         }
 
 
@@ -286,10 +286,11 @@ class CherryKeyboard:
         ciphertext = ""
         i = 0
         for b in plaintext:
-            ciphertext += chr(ord(b) ^ ord(self.cryptoKey[i]))
+            ciphertext += chr(b ^ self.cryptoKey[i])
             i += 1
+            #ciphertext.encode
 
-        return ciphertext + self.counter
+        return ciphertext + str(self.counter)
 
 
     def getKeystroke(self, keycode = KEY_NONE, modifiers = MODIFIER_NONE):
