@@ -11,10 +11,10 @@ by the Bastille Threat Research Team (many thanks to @marcnewlin)
 
 ## Requirements
 
-- nRF24LU1+ USB radio dongle with flashed [nrf-research-firmware](https://github.com/BastilleResearch/nrf-research-firmware) by the Bastille Threat Research Team, e. g.
+- nRF24LU1+ USB radio dongle with flashed python3 compatible [nrf-research-firmware](https://github.com/Einstein2150/nrf-research-firmware) 
 	* [Bitcraze CrazyRadio PA USB dongle](https://www.bitcraze.io/crazyradio-pa/)
 	* Logitech Unifying dongle (model C-U0007, Nordic Semiconductor based)
-- Python2
+- Python3
 - PyUSB
 - PyGame for GUI-based tools
 
@@ -38,7 +38,7 @@ vulnerability of some AES encrypted wireless keyboards
 Usage:
 
 ```
-# python2 keystroke_injector.py --help
+# python3 keystroke_injector.py --help
         _____  ______ ___  _  _     _____  _                      _  
        |  __ \|  ____|__ \| || |   |  __ \| |                    | |     
   _ __ | |__) | |__     ) | || |_  | |__) | | __ _ _   _ ___  ___| |_       
@@ -76,7 +76,7 @@ vulnerability of nRF24-based Logitech wireless presenters
 Usage:
 
 ```
-# python2 logitech_presenter.py --help
+# python3 logitech_presenter.py --help
         _____  ______ ___  _  _     _____  _                      _  
        |  __ \|  ____|__ \| || |   |  __ \| |                    | |     
   _ __ | |__) | |__     ) | || |_  | |__) | | __ _ _   _ ___  ___| |_       
@@ -110,7 +110,7 @@ unencrypted and unauthenticated wireless mouse communication
 Usage:
 
 ```
-# python2 radioactivemouse.py --help
+# python3 radioactivemouse.py --help
         _____  ______ ___  _  _     _____  _                      _  
        |  __ \|  ____|__ \| || |   |  __ \| |                    | |     
   _ __ | |__) | |__     ) | || |_  | |__) | | __ _ _   _ ___  ___| |_       
@@ -151,7 +151,7 @@ different wireless desktop sets using nRF24 ShockBurst radio communication
 Usage:
 
 ```
-# python2 simple_replay.py --help
+# python3 simple_replay.py --help
         _____  ______ ___  _  _     _____  _                      _  
        |  __ \|  ____|__ \| || |   |  __ \| |                    | |     
   _ __ | |__) | |__     ) | || |_  | |__) | | __ _ _   _ ___  ___| |_       
