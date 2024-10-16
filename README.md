@@ -1,4 +1,4 @@
-# nRF24 Playset
+# python3 compatible nRF24 Playset
 
 The nRF24 Playset is a collection of software tools for wireless input
 devices like keyboards, mice, and presenters based on Nordic Semiconductor 
