@@ -51,7 +51,7 @@ python cherry_attack.py -key 1234567890123456789012 -hex 00:11:22:33:44 -p "Your
 
 #### New insights in cherrys encryption
 
-During testing with the extensions, I (@Einstein2150) also noticed that multiple valid keys for keystroke injection can be concurrently valid at the same time. With the enhanced debugging output, the keys along with their corresponding device MAC addresses are documented as entries in the log.
+During testing with the extensions, I [@Einstein2150](https://github.com/Einstein2150) also noticed that multiple valid keys for keystroke injection can be concurrently valid at the same time. With the enhanced debugging output, the keys along with their corresponding device MAC addresses are documented as entries in the log. Feel free to collect as many working keys for your device as you can.
 
 
 ### keystroke_injector.py
