@@ -22,12 +22,27 @@ by the Bastille Threat Research Team (many thanks to @marcnewlin)
 ## Tools
 
 
-### cherry_attack.py
+### cherry_attack.py v.1.1 by Einstein2150
 
 Proof-of-concept software tool to demonstrate the replay and keystroke injection
 vulnerabilities of the wireless keyboard Cherry B.Unlimited AES
 
-![Cherry Attack PoC](https://github.com/SySS-Research/nrf24-playset/blob/master/images/cherry_attack_poc.png)
+#### New commandline Features
+
+The `-key` parameter specifies the cryptographic key used for the Cherry keyboard. It must be provided in a hex format (16 bytes) without spaces or special characters
+
+The `-hex` parameter specifies the device address of the Cherry keyboard. This address must also be in hex format (5 bytes) and formatted similarly to the key, with pairs of hexadecimal digits separated by colons (e.g., 00:11:22:33:44).
+
+The `-p` or `--payload` parameter allows users to pass a custom payload that will be used during the attack. This gives users more flexibility when conducting their tests and attacks.
+
+The new `-x` or `--execute` option allows users to execute an attack immediately without using the application's user interface. When both the `-p` (payload) and `-x` options are provided at startup, the attack is executed with the supplied payload right away.
+
+**Example:**
+
+```
+bash
+python cherry_attack.py -key 1234567890123456789012 -hex 00:11:22:33:44 -p "Your custom payload" -x
+```
 
 
 ### keystroke_injector.py
