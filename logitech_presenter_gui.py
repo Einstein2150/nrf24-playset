@@ -24,14 +24,9 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
   
-   
-  (Fork - 2024)
-  This program has been developed and optimized for use with Python 3 
-  by Einstein2150. The author acknowledges that further development 
-  and enhancements may be made in the future. The use of this program is 
-  at your own risk, and the author accepts no responsibility for any damages 
-  that may arise from its use. Users are responsible for ensuring that their 
-  use of the program complies with all applicable laws and regulations.
+Einstein2150 (Update 2024):
+This program has been migrated and further developed for use with Python 3 by Einstein2150. The author acknowledges that ongoing enhancements and updates to the codebase may continue in the future. Users should be aware that the use of this program is at their own risk, and the author accepts no responsibility for any damages that may arise from its use. It is the user's responsibility to ensure that their use of the program complies with all applicable laws and regulations.
+  
   
 
 """
