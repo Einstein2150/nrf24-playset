@@ -14,8 +14,15 @@
   Copyright (C) 2016 SySS GmbH
   
   
-Einstein2150 (Update 2024):
-This program has been migrated and further developed for use with Python 3 by Einstein2150. The author acknowledges that ongoing enhancements and updates to the codebase may continue in the future. Users should be aware that the use of this program is at their own risk, and the author accepts no responsibility for any damages that may arise from its use. It is the user's responsibility to ensure that their use of the program complies with all applicable laws and regulations.
+  Einstein2150 (Update 2024):
+  This program has been migrated and further developed for use with
+  Python 3 by Einstein2150. The author acknowledges that ongoing
+  enhancements and updates to the codebase may continue in the future.
+  Users should be aware that the use of this program is at their own
+  risk, and the author accepts no responsibility for any damages that
+  may arise from its use. It is the user's responsibility to ensure 
+  that their use of the program complies with all applicable laws 
+  and regulations.
   
 
   This program is free software: you can redistribute it and/or modify
