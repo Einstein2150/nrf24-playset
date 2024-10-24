@@ -7,6 +7,11 @@ nRF24 transceivers, e.g. nRF24LE1 and nRF24LU1+.
 All software tools support USB dongles with the
 [nrf-research-firmware](https://github.com/BastilleResearch/nrf-research-firmware)
 by the Bastille Threat Research Team (many thanks to @marcnewlin)
+
+
+## Migration from Python 2 to Python 3
+
+This project has been migrated from Python 2 to Python 3. The codebase has been thoroughly updated to take advantage of Python 3's features, syntax improvements, and enhanced libraries. Users should ensure that they are using a Python 3.x interpreter to run the script. Compatibility with Python 2 is no longer supported, and users are encouraged to upgrade their environments accordingly.
  
 
 ## Requirements
