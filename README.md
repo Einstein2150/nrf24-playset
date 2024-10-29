@@ -36,7 +36,7 @@ vulnerabilities of the wireless keyboard Cherry B.Unlimited AES
 
 The `-key` parameter specifies the cryptographic key used for the Cherry keyboard. It must be provided in a hex format (16 bytes) without spaces or special characters
 
-The `-hex` parameter specifies the device address of the Cherry keyboard. This address must also be in hex format (5 bytes) and formatted similarly to the key, with pairs of hexadecimal digits separated by colons (e.g., 00:11:22:33:44).
+The `-adr` parameter specifies the device address of the Cherry keyboard. This address must also be in hex format (5 bytes) and formatted similarly to the key, with pairs of hexadecimal digits separated by colons (e.g., 00:11:22:33:44).
 
 The `-p` or `--payload` parameter allows users to pass a custom payload that will be used during the attack. This gives users more flexibility when conducting their tests and attacks.
 
@@ -46,7 +46,7 @@ The new `-x` or `--execute` option allows users to execute an attack immediately
 
 ```
 bash
-python cherry_attack.py -key 1234567890123456789012 -hex 00:11:22:33:44 -p "Your custom payload" -x
+python cherry_attack.py -key 1234567890123456789012 -adr 00:11:22:33:44 -p "Your custom payload" -x
 ```
 
 #### New insights in cherrys encryption

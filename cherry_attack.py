@@ -321,7 +321,7 @@ if __name__ == '__main__':
     # Set up argument parser
     parser = argparse.ArgumentParser(description='Cherry Attack PoC - a proof-of-concept tool for demonstrating replay and keystroke injection vulnerabilities of Cherry B.Unlimited AES wireless keyboards.')
     parser.add_argument('-key', type=str, help='The crypto key')
-    parser.add_argument('-hex', type=str, help='The device address in hex format (e.g. 00:11:22:33:44)')
+    parser.add_argument('-adr', type=str, help='The device address in hex format (e.g. 00:11:22:33:44)')
     parser.add_argument('-p', '--payload', type=str, help='Custom payload string (can contain special characters)')
     parser.add_argument('-x', '--execute', action='store_true', help='Execute attack immediately with the provided payload and quit')
 
@@ -338,7 +338,7 @@ if __name__ == '__main__':
             info(f"Error: {e}")
             exit(1)
     elif args.key or args.hex:
-        info("Both -key and -hex must be provided together")
+        info("Both -key and -adr must be provided together")
         exit(1)
     else:
         crypto_key = None
